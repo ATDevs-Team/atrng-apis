@@ -1,58 +1,88 @@
-
-# ATAPI-RNG Python Client
+# ATRNG APIs – Python & Node.js Clients
 
 **Version:** 1.3.2
 
-A Python client library for interacting with the ATDevs RNG WebSocket and HTTP APIs.  
-This client handles connection management, sending random data keepalive packets, buffered "discard" data sending, and fetching hashed random numbers.
+A client library for interacting with the ATDevs Random Number Generator (ATRNG) APIs via WebSocket and HTTP, available for both Python and Node.js.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Python Installation](#python-installation)
+- [Node.js Installation](#nodejs-installation)
+- [Basic Python Usage](#basic-python-usage)
+- [Basic Node.js Usage](#basic-nodejs-usage)
+- [API Reference](#api-reference)
+  - [Python (atrng_utils.py)](#python-atrng_utilspy)
+  - [Node.js (atrng_utils.js)](#nodejs-atrng_utilsjs)
+- [Notes](#notes)
+- [License](#license)
 
 ---
 
 ## Features
 
-- Connects to the ATDevs RNG WebSocket server (`wss://rng-dump.atdevs.org`)  
-- Sends periodic 128-byte random keepalive packets  
-- Buffered discard data sending every 10 seconds as a SHA-512 hash  
-- Fetches random data from HTTP API and returns hashed random strings or big integers  
-- Thread-safe discard buffering and background thread management  
-- Simple API to start/stop background tasks and send arbitrary data  
+- Connects to the ATDevs RNG WebSocket server (`wss://rng-dump.atdevs.org`)
+- Sends periodic 128-byte random keepalive packets
+- Buffers discard data, sends every 10 seconds as SHA-512 hash
+- Fetches random data from HTTP API and returns hashed random strings or big integers
+- Thread-safe discard buffering and background thread management
+- Simple API to start/stop background tasks and send arbitrary data
 
 ---
 
-## Installation
+## Python Installation
 
 No external installation is required beyond the dependencies below.
 
 ### Requirements
 
-- Python 3.6+  
-- `socketio` Python client  
-- `requests` library  
+- Python 3.6+
+- `socketio` Python client
+- `requests` library
 
 Install dependencies with pip:
 
 ```bash
 pip install "python-socketio[client]" requests
-````
+```
 
 ---
 
-## Usage
+## Node.js Installation
 
-Import the module and use the provided functions to interact with the RNG service.
+You can use the provided Node.js client (`atrng_utils.js`) to interact with ATRNG APIs.
 
-### Basic usage
+### Requirements
+
+- Node.js 14+
+- `axios`
+- `socket.io-client`
+- Node.js built-in `crypto` module
+
+Install dependencies:
+
+```bash
+npm install axios socket.io-client
+```
+
+Copy `atrng_utils.js` into your project directory.
+
+---
+
+## Basic Python Usage
 
 ```python
 import atrng_utils  # (Assuming saved as atrng_utils.py)
 
-# Start the client: connects and starts background keepalive and discard loops
+# Start the client: connects and starts background keepalive/discard loops
 atrng_utils.start()
 
 # Send arbitrary data to the server
 atrng_utils.send_data_to_server("Hello, server!")
 
-# Add data to the discard buffer (hashed and sent every 10 seconds)
+# Add data to the discard buffer (hashed and sent every 10s)
 atrng_utils.discard("Some data to discard")
 
 # Fetch a random hashed string (SHA-512 hex digest)
@@ -70,82 +100,110 @@ atrng_utils.stop_discard_loop()
 
 ---
 
+## Basic Node.js Usage
+
+```javascript
+const atrng = require('./atrng_utils.js');
+
+// Start the client: connects and starts keepalive and discard loops
+atrng.start();
+
+// Send arbitrary data to the server
+atrng.sendDataToServer('Hello, ATRNG server!');
+
+// Add data to the discard buffer (hashed and sent every 10s)
+atrng.discard('Some data to discard');
+
+// Fetch a random hashed string (SHA-512 hex digest)
+atrng.getRngStr().then(hex => {
+  console.log('Random hex:', hex);
+});
+
+// Fetch a random number as a big integer (SHA-512 digest interpreted as int string)
+atrng.getRngNum().then(num => {
+  console.log('Random number:', num);
+});
+
+// Stop background tasks when done
+atrng.stopKeepalive();
+atrng.stopDiscardLoop();
+```
+
+---
+
 ## API Reference
 
-### `start()`
+### Python (atrng_utils.py)
 
-Connects to the WebSocket server and starts the background keepalive and discard threads.
+- **start()**  
+  Connects to the WebSocket server and starts background keepalive and discard tasks.
 
----
+- **start_keepalive()**  
+  Starts the background thread to send 128 random bytes every 10s.
 
-### `start_keepalive()`
+- **stop_keepalive()**  
+  Stops the keepalive background thread.
 
-Starts the background thread that sends 128 bytes of random data every 10 seconds as a keepalive message.
+- **send_data_to_server(data)**  
+  Sends `data` (string or bytes) to the WebSocket server.
 
----
+- **get_rng_str() -> str**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns hex string.
 
-### `stop_keepalive()`
+- **get_rng_num() -> int**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns as big integer.
 
-Stops the keepalive background thread.
+- **discard(data)**  
+  Adds `data` to discard buffer, sent every 10s.
 
----
+- **start_discard_loop()**  
+  Starts the discard background thread.
 
-### `send_data_to_server(data)`
-
-Send `data` (string or bytes) to the WebSocket server immediately via the `"message"` event. Automatically connects if not connected.
-
-* `data`: `str` or `bytes`
-
----
-
-### `get_rng_str() -> str`
-
-Fetches random data from the HTTP RNG API, hashes it with SHA-512, and returns the hex string digest.
-
-May raise exceptions from `requests` on network errors.
+- **stop_discard_loop()**  
+  Stops the discard background thread.
 
 ---
 
-### `get_rng_num() -> int`
+### Node.js (atrng_utils.js)
 
-Fetches random data from the HTTP RNG API, hashes it with SHA-512, and returns the digest interpreted as a large unsigned integer.
+- **start()**  
+  Connects to the WebSocket server and starts background keepalive and discard loops.
 
-May raise exceptions from `requests` on network errors.
+- **startKeepalive()**  
+  Starts the keepalive interval to send 128 random bytes every 10s.
 
----
+- **stopKeepalive()**  
+  Stops the keepalive interval.
 
-### `discard(data)`
+- **sendDataToServer(data: string | Buffer)**  
+  Sends data to the WebSocket server.
 
-Adds `data` (string or bytes) to an internal buffer to be hashed and sent every 10 seconds.
+- **getRngStr() → Promise\<string\>**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns hex string.
 
-* `data`: `str` or `bytes`
+- **getRngNum() → Promise\<string\>**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns as a big integer string (for arbitrary size).
 
-This method is thread-safe and returns immediately.
+- **discard(data: string | Buffer)**  
+  Adds data to the discard buffer to be hashed and sent every 10s.
 
----
+- **startDiscardLoop()**  
+  Starts the discard interval.
 
-### `start_discard_loop()`
-
-Starts the background thread that every 10 seconds hashes the discard buffer and sends it to the server.
-
----
-
-### `stop_discard_loop()`
-
-Stops the discard background thread.
+- **stopDiscardLoop()**  
+  Stops the discard interval.
 
 ---
 
 ## Notes
 
-* Keepalive and discard loops run in background daemon threads. They will not prevent your program from exiting if main threads finish.
-* The WebSocket connection auto-reconnects on failure during keepalive and discard cycles.
-* `discard()` batches data to reduce frequent network calls and hashes data before sending to maintain privacy.
-* The HTTP API endpoints are `https://rng-api.atdevs.org/random` for raw random bytes.
+- Keepalive and discard loops run in the background; they do not block your main program.
+- The WebSocket connection auto-reconnects on failure.
+- The HTTP API endpoint is `https://rng-api.atdevs.org/random` for raw random bytes.
+- Data sent to discard is hashed before transmission to enhance privacy/security.
 
 ---
 
 ## License
 
 Apache 2.0
-

@@ -1,8 +1,8 @@
-# ATRNG APIs – Python & Node.js Clients
+# ATRNG APIs – Python, Node.js & TypeScript Clients
 
 **Version:** 1.3.2
 
-A client library for interacting with the ATDevs Random Number Generator (ATRNG) APIs via WebSocket and HTTP, available for both Python and Node.js.
+A client library for interacting with the ATDevs Random Number Generator (ATRNG) APIs via WebSocket and HTTP, available for Python, Node.js (JavaScript), and TypeScript.
 
 ---
 
@@ -11,11 +11,14 @@ A client library for interacting with the ATDevs Random Number Generator (ATRNG)
 - [Features](#features)
 - [Python Installation](#python-installation)
 - [Node.js Installation](#nodejs-installation)
+- [TypeScript Installation](#typescript-installation)
 - [Basic Python Usage](#basic-python-usage)
-- [Basic Node.js Usage](#basic-nodejs-usage)
+- [Basic Node.js Usage (JavaScript)](#basic-nodejs-usage-javascript)
+- [Basic TypeScript Usage](#basic-typescript-usage)
 - [API Reference](#api-reference)
   - [Python (atrng_utils.py)](#python-atrng_utilspy)
   - [Node.js (atrng_utils.js)](#nodejs-atrng_utilsjs)
+  - [TypeScript (atrng_utils.ts)](#typescript-atrng_utilsts)
 - [Notes](#notes)
 - [License](#license)
 
@@ -71,6 +74,29 @@ Copy `atrng_utils.js` into your project directory.
 
 ---
 
+## TypeScript Installation
+
+A native TypeScript module (`atrng_utils.ts`) is provided for type-safe usage.
+
+### Requirements
+
+- Node.js 14+
+- TypeScript 4.x+
+- `axios`
+- `socket.io-client`
+- Node.js built-in `crypto` module
+
+Install dependencies:
+
+```bash
+npm install axios socket.io-client
+npm install --save-dev typescript @types/node
+```
+
+Copy `atrng_utils.ts` into your project.
+
+---
+
 ## Basic Python Usage
 
 ```python
@@ -100,7 +126,7 @@ atrng_utils.stop_discard_loop()
 
 ---
 
-## Basic Node.js Usage
+## Basic Node.js Usage (JavaScript)
 
 ```javascript
 const atrng = require('./atrng_utils.js');
@@ -127,6 +153,40 @@ atrng.getRngNum().then(num => {
 // Stop background tasks when done
 atrng.stopKeepalive();
 atrng.stopDiscardLoop();
+```
+
+---
+
+## Basic TypeScript Usage
+
+```typescript
+import { 
+  start, stopKeepalive, stopDiscardLoop, 
+  sendDataToServer, getRngStr, getRngNum, discard 
+} from "./atrng_utils";
+
+// Start the client: connects and starts keepalive and discard loops
+start();
+
+// Send arbitrary data to the server
+sendDataToServer('Hello, ATRNG server!');
+
+// Add data to the discard buffer (hashed and sent every 10s)
+discard('Some data to discard');
+
+// Fetch a random hashed string (SHA-512 hex digest)
+getRngStr().then(hex => {
+  console.log('Random hex:', hex);
+});
+
+// Fetch a random number as a BigInt (SHA-512 digest interpreted as int)
+getRngNum().then(num => {
+  console.log('Random number:', num.toString());
+});
+
+// Stop background tasks when done
+stopKeepalive();
+stopDiscardLoop();
 ```
 
 ---
@@ -192,6 +252,31 @@ atrng.stopDiscardLoop();
 
 - **stopDiscardLoop()**  
   Stops the discard interval.
+
+---
+
+### TypeScript (atrng_utils.ts)
+
+- **start()**  
+  Connects to the WebSocket server and starts background keepalive and discard loops.
+
+- **stopKeepalive()**  
+  Stops the keepalive interval.
+
+- **stopDiscardLoop()**  
+  Stops the discard interval.
+
+- **sendDataToServer(data: string \| Buffer)**  
+  Sends data to the WebSocket server.
+
+- **getRngStr() → Promise\<string\>**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns hex string.
+
+- **getRngNum() → Promise\<bigint\>**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns as a BigInt.
+
+- **discard(data: string \| Buffer)**  
+  Adds data to the discard buffer to be hashed and sent every 10s.
 
 ---
 

@@ -12,8 +12,8 @@ __all__ = [
     'discard', 'start_discard_loop', 'stop_discard_loop'
 ]
 
-# Updated WebSocket server URL (wss over Cloudflare)
-WS_SERVER_URL = 'wss://rng-dump.atdevs.org'  # Secure WebSocket via Cloudflared
+
+WS_SERVER_URL = 'wss://rng-dump.atdevs.org' 
 
 KEEPALIVE_INTERVAL = 10  # seconds
 KEEPALIVE_SIZE = 128     # bytes
@@ -125,7 +125,7 @@ def get_rng_num():
     data = response.content
     hashed_bytes = hashlib.sha512(data).digest()
     return int.from_bytes(hashed_bytes, byteorder='big', signed=False)
-# --- Additions for discard functionality ---
+
 
 _discard_buffer = bytearray()
 _discard_lock = threading.Lock()

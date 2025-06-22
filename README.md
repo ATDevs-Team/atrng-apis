@@ -378,7 +378,7 @@ public class Example {
 - The WebSocket connection auto-reconnects on failure.
 - The HTTP API endpoint is `https://rng-api.atdevs.org/random` for raw random bytes.
 - Data sent to discard is hashed before transmission to enhance privacy/security.
-
+- See the status of the APIs this talks to here: https://status.atdevs.org. (the names are "True RNG API", and "RNG Dump APIs")
 ---
 
 ## License

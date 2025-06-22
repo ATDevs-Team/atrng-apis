@@ -1,8 +1,8 @@
-# ATRNG APIs – Python, Node.js & TypeScript Clients
+# ATRNG APIs – Python, Node.js, TypeScript & Java Clients
 
 **Version:** 1.3.2
 
-A client library for interacting with the ATDevs Random Number Generator (ATRNG) APIs via WebSocket and HTTP, available for Python, Node.js (JavaScript), and TypeScript.
+A client library for interacting with the ATDevs Random Number Generator (ATRNG) APIs via WebSocket and HTTP, available for Python, Node.js (JavaScript), TypeScript, and Java.
 
 ---
 
@@ -12,13 +12,16 @@ A client library for interacting with the ATDevs Random Number Generator (ATRNG)
 - [Python Installation](#python-installation)
 - [Node.js Installation](#nodejs-installation)
 - [TypeScript Installation](#typescript-installation)
+- [Java Installation](#java-installation)
 - [Basic Python Usage](#basic-python-usage)
 - [Basic Node.js Usage (JavaScript)](#basic-nodejs-usage-javascript)
 - [Basic TypeScript Usage](#basic-typescript-usage)
+- [Basic Java Usage](#basic-java-usage)
 - [API Reference](#api-reference)
   - [Python (atrng_utils.py)](#python-atrng_utilspy)
   - [Node.js (atrng_utils.js)](#nodejs-atrng_utilsjs)
   - [TypeScript (atrng_utils.ts)](#typescript-atrng_utilsts)
+  - [Java (atrng_utils.java)](#java-atrng_utilsjava)
 - [Notes](#notes)
 - [License](#license)
 
@@ -94,6 +97,31 @@ npm install --save-dev typescript @types/node
 ```
 
 Copy `atrng_utils.ts` into your project.
+
+---
+
+## Java Installation
+
+A Java client (`atrng_utils.java`) is included for JVM-based projects.
+
+### Requirements
+
+- Java 8 or higher
+- [socket.io-client Java library](https://github.com/socketio/socket.io-client-java) *(for WebSocket support)*
+- No external dependencies for HTTP/crypto, uses standard JDK
+
+#### Add socket.io-client dependency (Maven example):
+
+```xml
+<dependency>
+  <groupId>io.socket</groupId>
+  <artifactId>socket.io-client</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+*(Or use Gradle, or download the jar manually as appropriate for your build system.)*
+
+Copy `atrng_utils.java` into your project.
 
 ---
 
@@ -191,6 +219,39 @@ stopDiscardLoop();
 
 ---
 
+## Basic Java Usage
+
+```java
+// Assuming you have atrng_utils.java compiled and in your classpath
+
+public class Example {
+    public static void main(String[] args) throws Exception {
+        // Start the client: connects and starts keepalive/discard loops
+        AtrngUtils.start();
+
+        // Send arbitrary data to the server
+        AtrngUtils.sendDataToServer("Hello, ATRNG server!");
+
+        // Add data to the discard buffer (hashed and sent every 10s)
+        AtrngUtils.discard("Some data to discard");
+
+        // Fetch a random hashed string (SHA-512 hex digest)
+        String randomHex = AtrngUtils.getRngStr();
+        System.out.println("Random hex: " + randomHex);
+
+        // Fetch a random number as a BigInteger (SHA-512 digest interpreted as int)
+        java.math.BigInteger randomNum = AtrngUtils.getRngNum();
+        System.out.println("Random number: " + randomNum);
+
+        // Stop background tasks when done
+        AtrngUtils.stopKeepalive();
+        AtrngUtils.stopDiscardLoop();
+    }
+}
+```
+
+---
+
 ## API Reference
 
 ### Python (atrng_utils.py)
@@ -277,6 +338,37 @@ stopDiscardLoop();
 
 - **discard(data: string \| Buffer)**  
   Adds data to the discard buffer to be hashed and sent every 10s.
+
+---
+
+### Java (atrng_utils.java)
+
+- **start()**  
+  Connects to the WebSocket server and starts background keepalive and discard threads.
+
+- **startKeepalive()**  
+  Starts the keepalive scheduled task to send 128 random bytes every 10s.
+
+- **stopKeepalive()**  
+  Stops the keepalive scheduled task.
+
+- **sendDataToServer(Object data)**  
+  Sends data (String or byte[]) to the WebSocket server.
+
+- **getRngStr() → String**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns hex string.
+
+- **getRngNum() → BigInteger**  
+  Fetches random data from HTTP API, hashes with SHA-512, returns as a BigInteger.
+
+- **discard(Object data)**  
+  Adds data (String or byte[]) to the discard buffer, sent every 10s.
+
+- **startDiscardLoop()**  
+  Starts the discard scheduled task.
+
+- **stopDiscardLoop()**  
+  Stops the discard scheduled task.
 
 ---
 
